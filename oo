@@ -1,0 +1,117 @@
+flutter create weather_forecast
+cd weather_forecast
+
+
+dependencies:
+  flutter:
+    sdk: flutter
+  http: ^0.13.4
+  provider: ^6.0.0
+
+
+
+
+
+
+
+
+
+
+
+
+
+import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+
+void main() {
+  runApp(MyApp());
+}
+
+class MyApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Weather Forecast',
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+      ),
+      home: WeatherHome(),
+    );
+  }
+}
+
+class WeatherHome extends StatefulWidget {
+  @override
+  _WeatherHomeState createState() => _WeatherHomeState();
+}
+
+class _WeatherHomeState extends State<WeatherHome> {
+  String _city = 'São Paulo';
+  String _weather = '';
+  String _temperature = '';
+
+  Future<void> fetchWeather() async {
+    final apiKey = 'SUA_CHAVE_API'; // Substitua pela sua chave da API
+    final url =
+        'https://api.openweathermap.org/data/2.5/weather?q=$_city&appid=$apiKey&units=metric';
+
+    final response = await http.get(Uri.parse(url));
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      setState(() {
+        _weather = data['weather'][0]['description'];
+        _temperature = data['main']['temp'].toString();
+      });
+    } else {
+      setState(() {
+        _weather = 'Erro ao buscar dados';
+        _temperature = '';
+      });
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    fetchWeather();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Weather Forecast'),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            TextField(
+              decoration: InputDecoration(labelText: 'Cidade'),
+              onChanged: (value) {
+                _city = value;
+              },
+            ),
+            SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: fetchWeather,
+              child: Text('Buscar Clima'),
+            ),
+            SizedBox(height: 20),
+            Text(
+              _weather.isNotEmpty ? 'Clima: $_weather' : '',
+              style: TextStyle(fontSize: 20),
+            ),
+            Text(
+              _temperature.isNotEmpty ? 'Temperatura: $_temperature °C' : '',
+              style: TextStyle(fontSize: 20),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
